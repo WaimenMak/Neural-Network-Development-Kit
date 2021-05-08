@@ -37,14 +37,12 @@ public:
         node.test = false;
 
     }
-    ~Nodes(void) {}
+    virtual ~Nodes(void) {}
 
-    virtual Eigen::MatrixXd output_val() {
-        return node.value;
+    virtual void output_val() {
     }
 
-    virtual Eigen::MatrixXd compute_gradient() {
-        return node.grad;
+    virtual void compute_gradient() {
     }
 
 };
@@ -60,13 +58,12 @@ public:
 
     ~Input(void) {}
 
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
-        return node.value;
+
     }
 
-    Eigen::MatrixXd compute_gradient() {
-        return node.grad;
+    void compute_gradient() {
     }
 
 };
@@ -80,13 +77,11 @@ public:
     ~Const() {
 
     }
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
-        return node.value;
     }
 
-    Eigen::MatrixXd compute_gradient() {
-        return node.grad;
+    void compute_gradient() {
     }
 };
 
@@ -101,13 +96,12 @@ public:
     ~Variable() {
 
     }
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
-        return node.value;
+
     }
 
-    Eigen::MatrixXd compute_gradient() {
-        return node.grad;
+    void compute_gradient() {
     }
 };
 
@@ -124,29 +118,26 @@ public:
 
     }
 
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
         node.value = Eigen::MatrixXd::Zero(last_left->node.value.rows(), last_left->node.value.cols());
         if ((last_left->node.value.rows() == last_right->node.value.rows()) && (last_left->node.value.cols() == last_right->node.value.cols())) {
             node.value = last_left->node.value + last_right->node.value;
         }
         else if ((last_left->node.value.cols() == last_right->node.value.cols())) {
-            for (int i = 0; i <last_left->node.value.rows(); i++) {
+            for (int i = 0; i < last_left->node.value.rows(); i++) {
                 node.value.row(i) = last_left->node.value.row(i) + last_right->node.value;
             }
         }
-        return node.value;
     }
 
-    Eigen::MatrixXd compute_gradient() {
+    void compute_gradient() {
         if (last_left->node.require_grad == true) {
             last_left->node.sub_grad = Eigen::MatrixXd::Ones(last_left->node.value.rows(), last_left->node.value.cols());
         }
         if (last_right->node.require_grad == true) {
             last_right->node.sub_grad = Eigen::MatrixXd::Ones(last_left->node.value.rows(), last_left->node.value.cols());  //there is a trick here! the same as above
         }
-        
-        return node.grad;
     }
 
 };
@@ -164,34 +155,32 @@ public:
     ~Dot() {
 
     }
-    Eigen::MatrixXd output_val() {
+    void output_val() {
         if (last_left->node.value.cols() == last_right->node.value.rows())
             node.value = last_left->node.value * last_right->node.value;
-        return node.value;
     }
 
-    Eigen::MatrixXd compute_gradient() {
+    void compute_gradient() {
         if (last_left->node.require_grad)
             last_left->node.sub_grad = last_right->node.value.transpose();
         if (last_right->node.require_grad)
             last_right->node.sub_grad = last_left->node.value.transpose();
-        return node.grad;
     }
 };
 
 class Minus : public Nodes {
 public:
     Minus(Nodes* left_node, Nodes* right_node) { //left_node: class.root
-       last_left = left_node;
-       last_right = right_node;
-       last_left->next = this;
-       last_right->next = this;
+        last_left = left_node;
+        last_right = right_node;
+        last_left->next = this;
+        last_right->next = this;
     }
     ~Minus() {
 
     }
 
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
         node.value = Eigen::MatrixXd::Zero(last_left->node.value.rows(), last_left->node.value.cols());
         if ((last_left->node.value.rows() == last_right->node.value.rows()) && (last_left->node.value.cols() == last_right->node.value.cols())) {
@@ -202,18 +191,15 @@ public:
                 node.value.row(i) = last_left->node.value.row(i) - last_right->node.value;
             }
         }
-        return node.value;
     }
 
-    Eigen::MatrixXd compute_gradient() {
+    void compute_gradient() {
         if (last_left->node.require_grad == true) {
             last_left->node.sub_grad = Eigen::MatrixXd::Ones(last_left->node.value.rows(), last_left->node.value.cols());
         }
         if (last_right->node.require_grad == true) {
             last_right->node.sub_grad = -1 * Eigen::MatrixXd::Ones(last_right->node.value.rows(), last_right->node.value.cols());
         }
-
-        return node.grad;
     }
 
 };
@@ -227,9 +213,9 @@ public:
     ~F_Norm() {
 
     }
-    Eigen::MatrixXd output_val()
-    {   
-        node.value = Eigen::MatrixXd::Zero(1,1);
+    void output_val()
+    {
+        node.value = Eigen::MatrixXd::Zero(1, 1);
         double sum = 0;
         int r = last_left->node.value.rows();
         int c = last_left->node.value.cols();
@@ -240,20 +226,18 @@ public:
         }
 
         node.value << sum / r;
-        return node.value;
     }
 
-    Eigen::MatrixXd compute_gradient() {
+    void compute_gradient() {
         if (last_left->node.require_grad)
             last_left->node.sub_grad = last_left->node.value + last_left->node.value;
-        return node.grad;
     }
 };
 
 //activation function
 class Sigmoid : public Nodes {
 public:
-    Sigmoid(Nodes * left_node) {
+    Sigmoid(Nodes* left_node) {
         last_left = left_node;
         node.value = last_left->node.value;
         left_node->next = this;
@@ -263,16 +247,14 @@ public:
 
     }
 
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
         node.value = 1 / (1 + exp(-1 * last_left->node.value.array()));
-        return node.value;
     }
 
-    Eigen::MatrixXd compute_gradient() {
+    void compute_gradient() {
         if (last_left->node.require_grad)
             last_left->node.sub_grad = (1 / (1 + exp(-1 * last_left->node.value.array()))).cwiseProduct(1 - 1 / (1 + exp(-1 * last_left->node.value.array())));
-        return node.grad;
     }
 };
 
@@ -288,13 +270,12 @@ public:
 
     }
 
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
         node.value = (last_left->node.value.cwiseAbs() + last_left->node.value) / 2;
-        return node.value;
     }
 
-    Eigen::MatrixXd compute_gradient() {
+    void compute_gradient() {
         if (last_left->node.require_grad) {
             int row_num = last_left->node.value.rows();
             int col_num = last_left->node.value.cols();
@@ -306,8 +287,6 @@ public:
                 }
             }
         }
-
-        return node.grad;
     }
 };
 
@@ -325,19 +304,15 @@ public:
 
     }
 
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
         node.value = (k * last_left->node.value.array().exp() - (-1 * k * last_left->node.value.array()).exp()) / (k * last_left->node.value.array().exp() + (-1 * k * last_left->node.value.array()).exp() + 1e-10);
-
-        return node.value;
     }
 
-    Eigen::MatrixXd compute_gradient() {
+    void compute_gradient() {
         if (last_left->node.require_grad) {
             last_left->node.sub_grad = k * (1 - ((k * last_left->node.value.array().exp() - (-1 * k * last_left->node.value.array()).exp()) / (k * last_left->node.value.array().exp() + (-1 * k * last_left->node.value.array()).exp() + 1e-10)).cwiseAbs2());
         }
-
-        return node.grad;
     }
 
 };
@@ -345,25 +320,25 @@ public:
 class Lee_Osc : public Nodes {
 public:
     double Lee[1001][100], s;
-    Lee_Osc(Nodes * left_node){
+    Lee_Osc(Nodes* left_node) {
         last_left = left_node;
         node.value = last_left->node.value;
         left_node->next = this;
-        s = 6;
+        s = 4;
         get_table(Lee);
 
     }
-    ~Lee_Osc(){
+    ~Lee_Osc() {
 
     }
     void get_table(double Lee[1001][100]) {
         int N = 600;         // n = no.of time step default is 1000
         //parameter for tanh function
         int a1 = 5, a2 = 5, b1 = 1, b2 = 1, eu = 0, ev = 0, c = 1;      // default is 5
-;       // default is 5
-;       //u threshold default is 0
-;       //v threshold defalut is 0
-;       //Decay constant
+        ;       // default is 5
+        ;       //u threshold default is 0
+        ;       //v threshold defalut is 0
+        ;       //Decay constant
         double k = 500, e = 0.02;
         int x = 0;        //x index of Lee()
         double u = 0.2, v = 0, w = 0, z = 0.2;
@@ -388,7 +363,7 @@ public:
 
     }
 
-    Eigen::MatrixXd output_val()
+    void output_val()
     {
         int r = last_left->node.value.rows(), c = last_left->node.value.cols();
         node.value = Eigen::MatrixXd::Zero(r, c);
@@ -405,20 +380,17 @@ public:
                     int col_ind = (rand() % (99 - 0 + 1)) + 0;
                     node.value(i, j) = Lee[row_ind][col_ind];
                 }
-                    
+
             }
         }
-        
-        return node.value;
+
     }
 
-    Eigen::MatrixXd compute_gradient() {
+    void compute_gradient() {
         if (last_left->node.require_grad) {
-            
+
             last_left->node.sub_grad = s * (1 - ((s * last_left->node.value.array().exp() - (-1 * s * last_left->node.value.array()).exp()) / (s * last_left->node.value.array().exp() + (-1 * s * last_left->node.value.array()).exp() + 1e-10)).cwiseAbs2());
         }
-            
-        return node.grad;
     }
 
 };

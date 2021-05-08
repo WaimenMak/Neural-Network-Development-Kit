@@ -3,7 +3,8 @@
 #include <Eigen/Dense>              
 #include <Eigen/Core>
 #include <math.h>
-#include "Nodes2.h"
+//#include "Nodes2.h"
+#include "Nodes.h"
 #include <queue>
 #include <vector>
 

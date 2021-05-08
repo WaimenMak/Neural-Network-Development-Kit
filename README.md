@@ -102,3 +102,57 @@ int activation[] = {0,0};
 
 
 
+## Nodes.cpp
+
+This toolkit is based on the computation graph model. The node of the graph is define as a class:
+
+```C++
+struct Node {
+
+    Eigen::MatrixXd  value;      //MatrixXd is class and value is an object, different from the python version,(pointer)
+    Eigen::MatrixXd grad;
+    Eigen::MatrixXd sub_grad;
+    bool require_grad;
+    bool need_update;
+    bool BN;
+    bool dot;
+    bool test;
+
+};
+
+class Nodes {
+public:
+    Nodes* last_right;
+    Nodes* last_left;
+    Nodes* next;
+    Node  node;
+
+    Nodes(void) {
+        //root = &node;
+        last_right = NULL;
+        last_left = NULL;
+        next = NULL;
+        node.require_grad = true;
+        node.need_update = false;
+        node.BN = false;
+        node.dot = false;
+        node.test = false;
+
+    }
+    ~Nodes(void) {}
+
+    virtual Eigen::MatrixXd output_val() {
+        return node.value;
+    }
+
+    virtual Eigen::MatrixXd compute_gradient() {
+        return node.grad;
+    }
+
+};
+```
+
+The `MatrixXd` class is used for matrix calculation. `need_update` is an attribute to record the node need to be update or not. `require_grad` means this node needs to calculate its gradient.
+
+ 
+

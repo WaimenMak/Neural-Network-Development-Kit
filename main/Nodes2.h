@@ -37,7 +37,7 @@ public:
         node.test = false;
 
     }
-    ~Nodes(void) {}
+    virtual ~Nodes(void) {}
 
     virtual Eigen::MatrixXd output_val() {
         return node.value;
