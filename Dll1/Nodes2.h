@@ -324,7 +324,7 @@ public:
         last_left = left_node;
         node.value = last_left->node.value;
         left_node->next = this;
-        s = 4;
+        s = 6;
         get_table(Lee);
 
     }
