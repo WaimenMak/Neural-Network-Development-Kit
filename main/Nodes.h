@@ -318,27 +318,15 @@ public:
 };
 
 class Lee_Osc : public Nodes {
-public:
-    double Lee[1001][100], s;
-    Lee_Osc(Nodes* left_node) {
-        last_left = left_node;
-        node.value = last_left->node.value;
-        left_node->next = this;
-        s = 4;
-        get_table(Lee);
-
-    }
-    ~Lee_Osc() {
-
-    }
+private:
     void get_table(double Lee[1001][100]) {
         int N = 600;         // n = no.of time step default is 1000
         //parameter for tanh function
         int a1 = 5, a2 = 5, b1 = 1, b2 = 1, eu = 0, ev = 0, c = 1;      // default is 5
-        ;       // default is 5
-        ;       //u threshold default is 0
-        ;       //v threshold defalut is 0
-        ;       //Decay constant
+        // default is 5
+        //u threshold default is 0
+        //v threshold defalut is 0
+        //Decay constant
         double k = 500, e = 0.02;
         int x = 0;        //x index of Lee()
         double u = 0.2, v = 0, w = 0, z = 0.2;
@@ -360,6 +348,19 @@ public:
             }
             x += 1;
         }
+    }
+
+public:
+    double Lee[1001][100], s;
+    Lee_Osc(Nodes* left_node) {
+        last_left = left_node;
+        node.value = last_left->node.value;
+        left_node->next = this;
+        s = 4;
+        get_table(Lee);
+
+    }
+    ~Lee_Osc() {
 
     }
 
