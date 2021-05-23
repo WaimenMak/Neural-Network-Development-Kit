@@ -1,7 +1,7 @@
 /*main*/
 #include<iostream>
 #include"pch.h"
-
+#include<vector>
 using namespace std;
 
 int main()
@@ -23,6 +23,8 @@ int main()
 	int hidden_neuron[] = {10,10};
 	//string activation[] = { "ReLu", "ReLu"};
 	int activation[] = { 0, 1 };
+	vector<int> v = { 8,2,2,3 };
+	vector<int> v1(8, 8 + 3);
 	//bool s = build_net(hidden_layer, feature_num, nn_output, inpt1, oupt1, hidden_neuron);
 	int a = build_net(hidden_layer, feature_num, nn_output, inpt1, oupt1, hidden_neuron, activation);
 	double mse = 0;

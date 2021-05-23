@@ -34,14 +34,18 @@ int main()
 		      2, 1, 6,
 		      20, 12, 1,
 		      8, 2, 10;
+
+	//debug
+	//MatrixXd s;
+	//s = data_y;
+	//s = data_y.array().exp();
+	//s = s - 3 * data_y;
+	//cout << s << endl;
+
 	Input * inpt = new Input(data_x);
 	Const * y = new Const(data_y);
 
-	//debug
-	//MatrixXd s(17, 1);
-	//s = data_y;
-	//s = 1 - ((data_y.array().exp() - (-1 * data_y.array()).exp()) / (data_y.array().exp() + (-1 * data_y.array()).exp())).cwiseAbs2();
-	//cout << s << endl;
+
 
 	Nodes* l1 = Fully_Conect(inpt, 4);
 	Nodes* l2 = new ReLu(l1);
@@ -49,10 +53,11 @@ int main()
 	//Nodes* l4 = new ReLu(l3);
 
 	//Nodes* l5 = Fully_Conect(l4, 3);
-	//Nodes* l6 = new Lee_Osc(l5);
+	//Nodes* l6 = new Lee_Osc(l3);
 	//Nodes* l6 = new Sigmoid(l5);
-	//Nodes* l6 = new Tanh(l5);
-	Nodes* l6 = new Sigmoid(l3);
+	//Nodes* l6 = new Tanh(l3);
+	//Nodes* l6 = new Sigmoid(l3);
+	Nodes* l6 = new Lee_Osc2(l3);
 	Nodes* l7 = Fully_Conect(l6, 1);
 
 
@@ -84,7 +89,7 @@ int main()
 	MatrixXd x_test(2, 3);
 	x_test << 1, 2, 3,
 		      8, 10,7;
-	inpt->node.value = x_test;
+	//inpt->node.value = x_test;
 
 	Forward(l7);
 	printf("Test:\n");

@@ -395,3 +395,82 @@ public:
     }
 
 };
+
+class Lee_Osc2 : public Nodes {
+private:
+    Eigen::MatrixXd x_pre;
+    Eigen::MatrixXd x_post;
+    Eigen::MatrixXd u;
+    Eigen::MatrixXd u_pre;
+    Eigen::MatrixXd u_post;
+    Eigen::MatrixXd v;
+    Eigen::MatrixXd v_pre;
+    Eigen::MatrixXd v_post;
+    Eigen::MatrixXd f_pre;
+    Eigen::MatrixXd f_post;
+    Eigen::MatrixXd w_pre;
+    Eigen::MatrixXd w_post;
+    Eigen::MatrixXd decay_pre;
+    Eigen::MatrixXd decay_post;
+
+    double s, delta_x = 0.001, k = 500;
+    int a1 = 5, a2 = 5, b1 = 1, b2 = 1, eu = 0, ev = 0, c = 1;
+
+public:
+    
+    Lee_Osc2(Nodes* left_node) {
+        last_left = left_node;
+        node.value = last_left->node.value;
+        x_pre = node.value.array() - 0.001;        //finite difference
+        x_post = node.value.array() + 0.001;
+        w_pre = ((s * x_pre).array().exp() - ((-1) * s * x_pre).array().exp()) / ((s * x_pre).array().exp() + ((-1) * s * x_pre).array().exp());
+        w_post = ((s * x_post).array().exp() - ((-1) * s * x_post).array().exp()) / ((s * x_post).array().exp() + ((-1) * s * x_post).array().exp());
+        decay_pre = (-1 * k * x_pre.cwiseAbs2()).array().exp();
+        decay_post = (-1 * k * x_post.cwiseAbs2()).array().exp();
+        u = Eigen::MatrixXd::Zero(node.value.rows(), node.value.cols());
+        u_pre = u;
+        u_post = u;
+        v = u;
+        v_pre = u;
+        v_post = u;
+
+        left_node->next = this;
+        s = 6;
+
+    }
+    ~Lee_Osc2() {
+
+    }
+
+    void output_val()
+    {
+        //int r = last_left->node.value.rows(), c = last_left->node.value.cols();
+        Eigen::MatrixXd tempu = (a1 * u - a2 * v + last_left->node.value).array() - eu;
+        Eigen::MatrixXd tempu_pre = (a1 * u_pre - a2 * v_pre + x_pre).array() - eu;
+        Eigen::MatrixXd tempu_post = (a1 * u_post - a2 * v_post + x_post).array() - eu;
+        Eigen::MatrixXd tempv = (b1 * u - b2 * v).array() - ev;
+        Eigen::MatrixXd tempv_pre = (b1 * u_pre - b2 * v_pre + x_pre).array() - ev;
+        Eigen::MatrixXd tempv_post = (b1 * u_post - b2 * v_post + x_post).array() - ev;
+        Eigen::MatrixXd w;
+        u = ((s * tempu).array().exp() - ((-1) * s * tempu).array().exp()) / ((s * tempu).array().exp() + ((-1) * s * tempu).array().exp());
+        u_pre = ((s * tempu_pre).array().exp() - ((-1) * s * tempu_pre).array().exp()) / ((s * tempu_pre).array().exp() + ((-1) * s * tempu_pre).array().exp());
+        u_post = ((s * tempu_post).array().exp() - ((-1) * s * tempu_post).array().exp()) / ((s * tempu_post).array().exp() + ((-1) * s * tempu_post).array().exp());
+        v = ((s * tempv).array().exp() - ((-1) * s * tempv).array().exp()) / ((s * tempv).array().exp() + ((-1) * s * tempv).array().exp());
+        v_pre = ((s * tempv_pre).array().exp() - ((-1) * s * tempv_pre).array().exp()) / ((s * tempv_pre).array().exp() + ((-1) * s * tempv_pre).array().exp());
+        v_post = ((s * tempv_post).array().exp() - ((-1) * s * tempv_post).array().exp()) / ((s * tempv_post).array().exp() + ((-1) * s * tempv_post).array().exp());
+        w = ((s * last_left->node.value).array().exp() - ((-1) * s * last_left->node.value).array().exp()) / ((s * last_left->node.value).array().exp() + ((-1) * s * last_left->node.value).array().exp());
+        node.value = (u - v).cwiseProduct((-1 * k * last_left->node.value.cwiseAbs2())).array().exp();
+        node.value += c * w;
+    }
+
+    void compute_gradient() {
+        if (last_left->node.require_grad) {
+            f_pre = (u_pre - v_pre).cwiseProduct(decay_pre);
+            f_pre += c * w_pre;
+            f_post = (u_post - v_post).cwiseProduct(decay_post);
+            f_post += c * w_post;
+            last_left->node.sub_grad = (f_post - f_pre) / (2 * delta_x);
+        }
+    }
+
+};
